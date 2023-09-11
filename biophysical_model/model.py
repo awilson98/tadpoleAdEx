@@ -50,7 +50,7 @@ class Model:
     def __init__(self, num_segments=5):
         self.num_segments = num_segments
         self.segment_length = 1.0 / num_segments
-        self.phase = np.zeros(num_segments)
+        # self.phase = np.zeros(num_segments)
         self.phase_offset = np.zeros(num_segments)
         self.amplitude = np.zeros(num_segments)
         self.frequency = np.zeros(num_segments)
@@ -190,17 +190,24 @@ def tadpole_struggling():
 
 def tadpole_flickering():
     """
-    set up a tadpole model that only swims along the end of the tail
+    set up a tadpole model that only swims along few end segments
+    of the tail
     """
+
     model = Model(num_segments=25)
     model.set_name("flickering")
-    # make amplitudes linearly increasing from head to tail
+    # make amplitudes linearly increasing from head for a few segments
+    # then decreasing to 0.1
     model.amplitude = np.zeros(model.num_segments)
-    model.amplitude[-1] = 0.3
+    n_increase_slow = model.num_segments - 6
+    model.amplitude[0:n_increase_slow] = np.linspace(0, 0.1, n_increase_slow)
+    model.amplitude[n_increase_slow:] = np.linspace(0.1, 0.2, model.num_segments - n_increase_slow)
+
     # keep frequency constant
     model.frequency = np.ones(model.num_segments)
     # initialize phase offset to be a sine wave
     model.phase_offset = np.sin(np.linspace(0, 2*np.pi, model.num_segments))
+
 
     return model
 
@@ -240,16 +247,27 @@ def animate_model(model):
 # setup plotting function that takes in a model and
 # plots the a single figure that overlays a few model
 # updates in increasing opacity
-def plot_model(model, num_updates=20, model_dt=0.1):
+def plot_model(model, ax=None, num_updates=20, model_dt=0.1):
     """
     take in a model, plot a few updates
-    """
-    model.dt = model_dt
-    
-    fig, ax = plt.subplots()
-    ax.set_ylim(-1.1, 1.1)
-    ax.set_xlim(-0.1, 1.1)
 
+    create a figure with tadpole at top and phase offset or amplitudes at bottom
+
+    plot on ax if given, otherwise plot on new figure
+    """
+
+    model.dt = model_dt
+
+    # use ax if given, otherwise create new figure
+    if ax is None:
+        ax = plt.gca()
+    
+
+    # plot tadpole on top
+
+    ax.set_ylim(-5, 1.1)
+    ax.set_xlim(-0.3, 1.3)
+    
     # no ticks
     ax.set_xticks([])
     ax.set_yticks([])
@@ -257,23 +275,32 @@ def plot_model(model, num_updates=20, model_dt=0.1):
     x, y = model.get_segment_positions()
 
     line, = ax.plot(x, y, 'ko-', alpha=0.1)
-    ax.plot(0, 0, 'o')
+    # make head bigger.
+    # give it a fill and an edge color black
+    ax.plot(0, 0, 'o', markersize=30, color='gray', markeredgecolor='black')
+
     
     for i in range(num_updates):
         model.update()
         if (i % 5 == 0):
             x, y = model.get_segment_positions()
             # plot with increasing opacity until 1:
-            plt.plot(x, y, 'ko-', alpha=(i/num_updates)*0.9)
-            plt.plot(0, 0, 'o')
+            ax.plot(x, y, 'ko-', alpha=(i/num_updates)*0.9)
+
+    # plot ampliudes 
+    ax2 = ax.inset_axes([0.1, 0.1, 0.8, 0.3])
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+    ax2.plot(model.amplitude, 'k-')
+    ax2.set_ylabel('amplitude')
+    ax2.set_xlabel('segment')
+
+    
 
 
-    # plot current acitivity of each segment
-    # as np.sin(phase_offset) 
-    # next to each segment
- 
-    plt.title(model.name)
-    plt.show()
+
+
+
 
 
 
@@ -286,5 +313,49 @@ model_flicker = tadpole_flickering()
 # plot_model(model_swim, model_dt=0.5)
 # animate_model(model_swim)
 
-# plot_model(model_struggle, model_dt=0.5)
-animate_model(model_struggle)
+# plot_model(model_struggle, model_dt=0.2)
+# animate_model(model_struggle)
+# animate_model(model_flicker)
+# plot_model(model_flicker, model_dt=0.5)
+
+# animate_model(model_flicker)
+
+
+# make multi panel figure with all 3 models
+def plot_multipanel():
+    """
+    plot all 3 models in subplots
+    """
+
+    model_swim = tadpole_swimming()
+    model_struggle = tadpole_struggling()
+    model_flicker = tadpole_flickering()
+
+
+    # setup figure
+    fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+    fig.suptitle('Tadpole Swimming Behaviors')
+
+
+    # plot each model
+    plot_model(model_swim, ax=axs[0], num_updates=20, model_dt=0.3)
+    plot_model(model_struggle, ax=axs[1], num_updates=20, model_dt=0.3)
+    plot_model(model_flicker, ax=axs[2], num_updates=20, model_dt=0.3)
+
+    
+    axs[0].set_title('Swimming')
+    axs[1].set_title('Struggling')
+    axs[2].set_title('Flickering')
+
+    plt.show()
+
+
+
+plot_multipanel()
+
+
+
+
+
+
+
