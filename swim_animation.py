@@ -15,7 +15,7 @@ head = sphere(pos=vector(0, 0, 0), radius=1)
 tail = cylinder(pos=vector(0, 0, 0), axis=vector(-5, 0, 0), radius=0.5, make_trail=True)
 
 for i in range(len(data)):
-    rate(5)
+    rate(3)
     head.pos.x = HEAD_POS[i]
     tail.pos.x = HEAD_POS[i]
     tail.axis.z = TAIL_CRD[TAIL_POS[i]]
