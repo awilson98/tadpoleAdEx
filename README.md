@@ -22,5 +22,5 @@ Outputs are alternating descending waves of activity down both sides of the spin
 
 ### Notes
 from @aaradhyavaze
-The data/ folder doesn't have to be commited
+The data/ folder doesn't have to be commited;
 added vpython (at python=3.10) to dependencies
